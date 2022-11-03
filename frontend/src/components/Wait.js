@@ -17,7 +17,7 @@ function WaitZone({items, setList}) {
         }
         window.backend.Basic.Flip( String(item),Number(-1)).then((data)=>{
             console.log('out')
-            setList(data.Rv)
+            // setList(data.Rv)
         })
 
         return
@@ -25,7 +25,7 @@ function WaitZone({items, setList}) {
     }
 
     return (<div className="wait" style={{
-                border: isOut? '5px solid rgba(0, 0, 0, 0.05)':'5px solid blue',
+                border: isOut? '5px solid rgba(0, 0, 0, 0.05)':'5px solid green',
                 flexDirection: "row",
                 flexWrap: "wrap",
                 display: 'flex',

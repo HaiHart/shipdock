@@ -20,7 +20,7 @@ function DropZone({items, id, setList}) {
 
         window.backend.Basic.Flip( String(item), Number(id)).then((data)=>{
             console.log(data)
-            setList(data.Rv)
+            // setList(data.Rv)
         })
 
         return
