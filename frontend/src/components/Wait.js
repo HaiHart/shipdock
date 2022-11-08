@@ -2,11 +2,13 @@ import React from "react";
 import { useDrop } from "react-dnd";
 import Drag from "./Drag";
 
-function WaitZone({items, setList}) {
+function WaitZone({items}) {
+
+    // const list = items.filter(ele=>ele.Placed<0)
 
     const [{isOut},out]= useDrop(()=>({
         accept:'image',
-        drop:(item) => outItem(item.Id),
+        drop:(item) => outItem(item.Iden),
         collect:(monitor)=>({
             isOut: !!monitor.isOver(),
         })
@@ -17,26 +19,26 @@ function WaitZone({items, setList}) {
         }
         window.backend.Basic.Flip( String(item),Number(-1)).then((data)=>{
             console.log('out')
-            // setList(data.Rv)
         })
 
         return
     
     }
-
+    // console.log(items.slice(0,20))
     return (<div className="wait" style={{
-                border: isOut? '5px solid rgba(0, 0, 0, 0.05)':'5px solid green',
+                border: isOut? '0.5rem solid rgba(0, 0, 0, 0.05)':'0.5rem solid green',
                 flexDirection: "row",
                 flexWrap: "wrap",
                 display: 'flex',
-                flex:2,
-                height: '100px'
+                flex: '2',
+                height: '10rem',
             }}
                 ref={out}
             >
                 {items.map((item)=>{
                     if (item.Placed < 0){
-                        return (<Drag draggable={true} id={item.Id} name={item.Name}/>)
+                        console.log(item)
+                        return (<Drag draggable={true} Iden={item.Iden} name={item.Name} wait={true}/>)
                     }else{
                         return (<></>)
                     }

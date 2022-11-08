@@ -6,7 +6,7 @@ function DropZone({items, id, setList}) {
 
     const [{isOver},drop]= useDrop(()=>({
         accept:'image',
-        drop:(item) => addItem(item.Id),
+        drop:(item) => addItem(item.Iden),
         collect:(monitor)=>({
             isOver: !!monitor.isOver(),
         })
@@ -16,11 +16,10 @@ function DropZone({items, id, setList}) {
         if (item<=0 ){
             return
         }
-        
 
         window.backend.Basic.Flip( String(item), Number(id)).then((data)=>{
-            console.log(data)
-            // setList(data.Rv)
+            // console.log(id)
+            // console.log(item)
         })
 
         return
@@ -29,9 +28,9 @@ function DropZone({items, id, setList}) {
 
 
     return (<div className="Drop" style={{
-                border: isOver? '50px solid rgba(255, 0, 0, 0.05)':'50px solid yellow',
-                width: '50px',
-                height: '50px',
+                border: isOver? '3rem solid rgba(255, 0, 0, 0.05)':'3rem solid yellow',
+                width: '2.5rem',
+                height: '2.5rem',
                 color: 'blue',
                 visibility: 'visible',
                 alignSelf: "flex-start",
@@ -41,7 +40,7 @@ function DropZone({items, id, setList}) {
             >
                 {items.map((item)=>{
                     if (item.Placed === id){
-                        return (<Drag draggable={true} id={item.Id} name={item.Name}/>)
+                        return (<Drag draggable={true} Iden={item.Iden} name={item.Name}/>)
                     }else{
                         return (<></>)
                     }

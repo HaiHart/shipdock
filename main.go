@@ -3,7 +3,9 @@ package main
 import (
 	_ "embed"
 	"fmt"
+	// "sort"
 	"strconv"
+
 	// "time"
 	"github.com/leaanthony/mewn"
 	"github.com/wailsapp/wails"
@@ -42,8 +44,9 @@ type Container struct{
   // Id int `json:"id"`
   // Placed bool `json:"state"`
   Name string
-  Id int 
   Placed int
+  Iden int 
+  Key int 
 }
 
 type Basic struct {
@@ -56,7 +59,7 @@ type Basic struct {
 
 func (b*Basic)getRV(index int) *Container {
   return &Container{
-    Id: b.Rv[index].Id,
+    Iden: b.Rv[index].Iden,
     Name: b.Rv[index].Name,
     Placed: b.Rv[index].Placed,
   }
@@ -80,46 +83,66 @@ func (b *Basic) WailsInit(runtime *wails.Runtime) error  {
   return nil
 }
 
+func (b*Basic)sort()  {
+  var tmp_1 []Container = make([]Container, 0)
+  var tmp_2 []Container = make([]Container, 0)
+  for _, v := range b.Rv {
+    if v.Placed>-1{
+      tmp_1 = append(tmp_1, v)
+    }else{
+      tmp_2 = append(tmp_2, v)
+    }
+  }
+  b.Rv = append(tmp_1, tmp_2...)
+}
+
 func (b*Basic)Flip(x string, id int) *Basic {
   fmt.Println(x)
   if x == "yes"{
-    // b.signal<-"initiate"
+    //  b.signal<-"initiate"
     return b
   }
+  var rv string = ""
   index,err:= strconv.Atoi(x)
   if err != nil {
     fmt.Printf("%v", err)
     return b
   }
   for k, v := range b.Rv {
-    if (v.Id == index ){
+    if (v.Iden == index ){
       b.Counter++
       if (id == -1){
         (b.Rv)[k] = Container {
-          Id: v.Id,
+          Iden: v.Iden,
           Name: v.Name,
           Placed: id,
         }
+        rv = string(fmt.Sprintf("%d is moved to %d",index, id))
       } else {
         for i,j:= range b.Rv{
           if (j.Placed == id){
             (b.Rv)[i] = Container {
-              Id: j.Id,
+              Iden: j.Iden,
               Name: j.Name,
               Placed: v.Placed,
             }
+          rv = string(fmt.Sprintf("%d is switched with %d",index, j.Iden))
           }
         }
         (b.Rv)[k] = Container {
-          Id: v.Id,
+          Iden: v.Iden,
           Name: v.Name,
           Placed: id,
+        }
+        if len(rv) <1{
+          rv = string(fmt.Sprintf("%d is moved to %d",index, id))
         }
       }
       
     }
   }
-  b.signal<-string(fmt.Sprintf("%d is switch to %d",index, id))
+  // b.sort()
+  b.signal<-rv
   return b
 }
 
@@ -147,19 +170,22 @@ func main() {
   Bench:=&Basic{
     Counter: 0,
     Rv: []Container{Container{
-      Id: 1,
+      Iden: 1,
       Name: "1",
       Placed: -1,
+      Key: 0,
     },
   Container{
-    Id: 2,
+    Iden: 2,
     Name: "2",
     Placed: -1,
+    Key: 1,
   },
   Container{
-    Id: 3,
+    Iden: 3,
     Name: "3",
     Placed: -1,
+    Key: 2,
   }},
   signal: make(chan string),
   Log: make([]string, 1),

@@ -2,17 +2,9 @@ import React, { useState } from "react";
 import * as Wails from '@wailsapp/runtime'
 import WaitZone from "./Wait";
 import DropZone from "./Drop";
-
+import Log from "./Log";
 
 function DragDrop(){
-   
-       
-
-    // const [ver,setVer] = useState(0)
-    
-    // const [drags,setDrags] = useState([])
-
-    // const [board,setBoard] = useState([])
 
     const [dat,setData] = useState({
         Rv: [],
@@ -20,40 +12,37 @@ function DragDrop(){
         Log: [],
     })
 
-    // const [list,setList] = useState([])
-    // const [log,setLog] = useState([])
-    const [ver,setVer] = useState(-1)
 
-
-    if (dat.Rv.length<1 && ver<0){
+    if (dat.version<0){
         window.backend.Basic.Flip("yes", Number(0)).then(data=>{
             console.log(data)
             setData(data)
-            // setLog(data.Log)
-            // setList(data.Rv)
-            setVer(data.version)
         })
     }
 
 
     Wails.Events.On("List",(ata)=>{
 
-        if (ver !== ata.version){
+        if (dat.version !== ata.version){
             setData(ata)
-            setVer(ata.version)
         }
-        // setLog(data.Log)   
-        // setList(data.Rv)
-            // setVer(data.version)
     })
 
     return(
         <div style={{
-            flex:1,
+            display: 'flex',
+            flex: '2',
+            flexWrap:'wrap',
+            flexDirection: 'row',
+            height:'40rem',
         }}>
+            <div style={{
+                alignSelf: "flex-start",
+                width: '78%',
+            }}>
             <div className="List" style={{
-                border:'50px solid rgba(255, 0, 0, 0.05)',
-                height: '100px',
+                border:'5rem solid rgba(255, 0, 0, 0.05)',
+                height: '11rem',
                 
             }}>
                 <WaitZone items={dat.Rv} />
@@ -62,7 +51,7 @@ function DragDrop(){
                 ----------------------------------------------------
             </div>
             <div style={{
-                border: '50px solid yellow',
+                border: '5rem solid yellow',
                 backgroundColor: 'yellow',
                 display: 'flex',
                 flex:8,
@@ -75,6 +64,15 @@ function DragDrop(){
                         return(<DropZone items={dat.Rv} id={i} />)
                     })
                 }
+            </div>
+            </div>
+            <div style={{
+                width:'19%',
+                border: '0.3rem solid yellow',
+                height: '100%',
+                
+            }}>
+                <Log list={dat.Log}/>
             </div>
         </div>
     )

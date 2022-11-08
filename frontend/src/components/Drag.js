@@ -1,16 +1,19 @@
 import React from "react";
 import {useDrag} from 'react-dnd';
 
-function Drag({id,name, draggable}){
+function Drag({Iden,name, draggable, wait}){
 
-    // const 
-
+    if(wait){
+        console.log(Iden,name)
+    }
     const [{isDragging},drag] = useDrag((monitor)=>({
-       type: 'image',
-        item:{Id: id},
-        collect:(monitor)=>({
+        type: 'image',
+        item:{Iden: Iden, Name: name},
+        collect:(monitor)=>{
+            console.log(monitor.getItem())
+            return({
             isDragging:!!monitor.isDragging(),
-        })
+        })}
     }),)
 
     return (
@@ -19,11 +22,11 @@ function Drag({id,name, draggable}){
             color: "white",
             visibility: isDragging ? "hidden":"",
             text_align: 'justify', 
-            width:'50px',
-            height: '50px',
+            width:'3rem',
+            height: '3rem',
         }} ref={draggable ? drag:{}}
         >
-            {id} {name}
+            {Iden} {name}
         </div>
     )
 }
