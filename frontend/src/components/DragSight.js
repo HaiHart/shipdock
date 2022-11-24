@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import DropZone from "./Drop";
 
-function DragSight({ dat }) {
+function DragSight({ dat, box }) {
   const [size, setSize] = useState({
     width: 1,
     height: 40,
@@ -20,12 +20,19 @@ function DragSight({ dat }) {
       scale: newScale,
     });
   };
-
+  console.log(box)
   return (
     <div
       onWheelCapture={ZoomWheel}
       style={{
-        height: "calc(100% - 40rem)",
+        height:
+          (((box.y) === 0) || (box.set === false))
+            ? "calc(100% - 40rem)"
+            : `calc(${box.y}*10rem)`,
+        width: 
+          (((box.x) === 0) || (box.set === false))
+            ? "" 
+            : `calc(${box.x}*10rem)`,
         overflowX: "scroll",
         overflowY: "scroll",
       }}
@@ -38,6 +45,8 @@ function DragSight({ dat }) {
       >
         <div
           style={{
+            height: "5rem",
+            width: "90rem",
             border: "5rem solid yellow",
             backgroundColor: "yellow",
             display: "flex",

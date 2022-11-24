@@ -3,6 +3,8 @@ package main
 import (
 	_ "embed"
 	"fmt"
+	"time"
+
 	// "sort"
 	"strconv"
 
@@ -117,7 +119,7 @@ func (b*Basic)Flip(x string, id int) *Basic {
           Name: v.Name,
           Placed: id,
         }
-        rv = string(fmt.Sprintf("%d is moved to %d",index, id))
+        rv = string(fmt.Sprintf("%d is moved to %d at %v",index, id, time.Now().Format(time.ANSIC)))
       } else {
         for i,j:= range b.Rv{
           if (j.Placed == id){
@@ -126,7 +128,7 @@ func (b*Basic)Flip(x string, id int) *Basic {
               Name: j.Name,
               Placed: v.Placed,
             }
-          rv = string(fmt.Sprintf("%d is switched with %d",index, j.Iden))
+          rv = string(fmt.Sprintf("%d is switched with %d at %v",index, j.Iden, time.Now().Format(time.ANSIC)))
           }
         }
         (b.Rv)[k] = Container {
@@ -135,7 +137,7 @@ func (b*Basic)Flip(x string, id int) *Basic {
           Placed: id,
         }
         if len(rv) <1{
-          rv = string(fmt.Sprintf("%d is moved to %d",index, id))
+          rv = string(fmt.Sprintf("%d is moved to %d at %v",index, id, time.Now().Format(time.ANSIC)))
         }
       }
       
@@ -149,17 +151,15 @@ func (b*Basic)Flip(x string, id int) *Basic {
 
 //go:embed frontend/build/static/js/main.js
 var js string
-// var js string=mewn.String("./frontend/src/index.js")
 
 
 //go:embed frontend/build/static/css/main.css
 var css string
-// var css string=mewn.String("./frontend/src/index.css")
 
 func main() {
 
   app := wails.CreateApp(&wails.AppConfig{
-    Width:  1284,
+    Width:  1280,
     Height: 960,
     Resizable: true,
     Title:  "DockSetter",

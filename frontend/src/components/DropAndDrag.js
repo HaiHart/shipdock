@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import * as Wails from "@wailsapp/runtime";
 import WaitZone from "./Wait";
-import DropZone from "./Drop";
 import Log from "./Log";
 import DragSight from "./DragSight";
 
@@ -13,26 +12,11 @@ function DragDrop() {
     version: -1,
     Log: [],
   });
-
-  const [size, setSize] = useState({
-    width: 1,
-    height: 40,
-    scale: 1,
-  });
-
-  const ZoomWheel = (e) => {
-    if (!e.shiftKey) {
-      return;
-    }
-    const delta = e.deltaY * -0.001;
-    const newScale = delta + size.scale;
-    setSize({
-      width: size.width,
-      height: size.height,
-      scale: newScale,
-    });
-  };
-
+  const [size,setSize]=useState({
+    x:0,
+    y:0,
+    set:false,
+  })
   if (dat.version < 0) {
     window.backend.Basic.Flip("yes", Number(0)).then((data) => {
       console.log(data);
@@ -71,18 +55,68 @@ function DragDrop() {
         >
           <WaitZone items={dat.Rv} />
         </div>
-        <div>----------------------------------------------------</div>
-        <DragSight dat={dat} />
+        <div>-------------------------------------</div>
+        <div>
+          <input
+            type="number"
+            placeholder="Y"
+            onChange={(e)=>{
+              if(e.target.value === null || e.target.value === ''){
+                return
+              }
+              if(e.target.value<0){
+                e.target.value = 0
+                return
+              }
+              if (e.target.value>3){
+                e.target.value = 3
+                setSize({
+                  y:Number(e.target.value),
+                  x:size.x,
+                  set:true,
+                })
+                return
+              }
+              setSize({
+                y:Number(e.target.value),
+                x:size.x,
+                set:true,
+              })
+            }}
+          />
+          <input
+            type ="number"
+            placeholder="X"
+            onChange={(e)=>{
+              if(e.target.value === null || e.target.value === ''){
+                return
+              }
+              if(e.target.value<0){
+                e.target.value = 0
+                return
+              }
+              if (e.target.value>8){
+                e.target.value = 8
+                setSize({
+                  x:Number(e.target.value),
+                  y:size.y,
+                  set:true,
+                })
+                return
+              }
+              setSize({
+                x:Number(e.target.value),
+                y:size.y,
+                set:true,
+              })
+            }}
+          />          
+        </div>
+        <div>-------------------------------------</div>
+        <DragSight dat={dat} box={size}/>
       </div>
-      <div
-        style={{
-          width: "19%",
-          border: "0.3rem solid yellow",
-          height: "100%",
-        }}
-      >
-        <Log list={dat.Log} />
-      </div>
+
+      <Log list={dat.Log} />
     </div>
   );
 }
