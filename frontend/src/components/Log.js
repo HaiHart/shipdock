@@ -11,8 +11,6 @@ export default function Log({ list }) {
     setScale(newScale);
   };
 
-  console.log(list)
-
   return (
     <div
       style={{

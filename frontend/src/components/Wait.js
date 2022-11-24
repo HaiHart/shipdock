@@ -17,12 +17,10 @@ function WaitZone({ items }) {
       return;
     }
     window.backend.Basic.Flip(String(item), Number(-1)).then((data) => {
-      console.log("out");
     });
 
     return;
   };
-  // console.log(items.slice(0,20))
   return (
     <div
       className="wait"

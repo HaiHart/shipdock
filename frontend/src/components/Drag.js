@@ -3,13 +3,11 @@ import { useDrag } from "react-dnd";
 
 function Drag({ Iden, name, draggable, wait }) {
   if (wait) {
-    console.log(Iden, name);
   }
   const [{ isDragging }, drag] = useDrag((monitor) => ({
     type: "image",
     item: { Iden: Iden, Name: name },
     collect: (monitor) => {
-      console.log(monitor.getItem());
       return {
         isDragging: !!monitor.isDragging(),
       };

@@ -10,7 +10,6 @@ function HelloWorld() {
     setShowModal(true);
 
     window.backend.action("Ho Vu Dai Hai").then((result) => {
-      console.log("yes");
       setResult(result);
     });
   };
