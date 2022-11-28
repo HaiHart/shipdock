@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import DropZone from "./Drop";
 
-function DragSight({ dat, box, img , pos}) {
+function DragSight({ dat, box, img, pos }) {
   const [size, setSize] = useState({
     width: 1,
     height: 40,
     scale: 1,
   });
-
 
   const ZoomWheel = (e) => {
     if (!e.shiftKey) {
@@ -21,28 +20,32 @@ function DragSight({ dat, box, img , pos}) {
       scale: newScale,
     });
   };
+
+  const getBg = () => {
+    return {
+      height: "100%",
+      backgroundImage:
+        img !== null
+          ? `url(${URL.createObjectURL(img)})`
+          : "url('http://localhost:5000/img')",
+      backgroundPosition: `${pos.x}px ${pos.y}px`,
+      width: "100%",
+    };
+  };
+
   return (
-    <div
-      style={{
-        height: "calc(100% - 40rem)",
-        backgroundImage: img!==null ? `url(${URL.createObjectURL( img)})`:'',
-        // backgroundSize: "100% 100%",
-        backgroundPosition: `${pos.x}px ${pos.y}px`,
-        width:"100%",
-      }}
-    >
+    <div style={getBg()}>
       <div
         onWheelCapture={ZoomWheel}
         style={{
-          height: "calc(100% - 40rem)",
+          height: "100%",
           overflowX: "scroll",
           overflowY: "scroll",
-          paddingTop:`calc(5rem)`,
         }}
       >
         <div
           style={{
-            height: "15rem",
+            height: "100%",
             width: "100%",
             display: "flex",
             flexDirection: "row",
@@ -50,6 +53,7 @@ function DragSight({ dat, box, img , pos}) {
             justifyContent: "space-evenly",
             transformOrigin: "0 0",
             transform: `scale(${size.scale})`,
+            paddingTop: `calc(5rem)`,
           }}
         >
           {[...Array(box.y)].map((_, y) => {

@@ -4,14 +4,9 @@ import Mold from "./DropMold";
 
 function HelloWorld() {
   const [showModal, setShowModal] = useState(false);
-  const [result, setResult] = useState(null);
 
   const handleOpenModal = () => {
     setShowModal(true);
-
-    window.backend.action("Ho Vu Dai Hai").then((result) => {
-      setResult(result);
-    });
   };
 
   const handleCloseModal = () => {
@@ -21,14 +16,13 @@ function HelloWorld() {
   return (
     <div className="App">
       <button onClick={() => handleOpenModal()} type="button">
-        Hello
+        Drag And Drop
       </button>
       <Modal
         appElement={document.getElementById("app")}
         isOpen={showModal}
         contentLabel="Minimal Modal Example"
       >
-        <p>{result}</p>
         <button onClick={() => handleCloseModal()}>Close Modal</button>
         <Mold />
       </Modal>

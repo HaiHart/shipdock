@@ -32,13 +32,12 @@ function WaitZone({ items }) {
         flexWrap: "wrap",
         display: "flex",
         flex: "2",
-        height: "10rem",
+        height: "5rem",
       }}
       ref={out}
     >
       {items.map((item) => {
         if (item.Placed < 0) {
-          console.log(item);
           return (
             <Drag
               draggable={true}
