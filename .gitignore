@@ -1,4 +1,4 @@
 /build
 .jpg*
-.jpg
+*.jpg
 Config.json

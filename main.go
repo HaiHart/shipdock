@@ -6,16 +6,11 @@ import (
 	"fmt"
 	"io"
 	"os"
-
 	mx "github.com/gorilla/mux"
 	"github.com/leaanthony/mewn"
 	"github.com/wailsapp/wails"
-
-	// "io"
 	"io/ioutil"
 	"net/http"
-
-	// "os"
 	"strconv"
 	"sync"
 	"time"
@@ -74,6 +69,7 @@ func (b *Basic) getRV(index int) *Container {
 }
 
 func (b *Basic) WailsInit(runtime *wails.Runtime) error {
+	// runtime.Window.Fullscreen()
 	b.log = runtime.Log.New("Basic")
 	go func() {
 		for {
@@ -252,7 +248,7 @@ func checkConn(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Yes")
 }
 
-func runServer(wg sync.WaitGroup) {
+func runServer(wg *sync.WaitGroup) {
 	defer wg.Done()
 	wg.Add(1)
 	r := mx.NewRouter()
@@ -279,19 +275,19 @@ func runWails() {
 	})
 	Bench := &Basic{
 		Counter: 0,
-		Rv: []Container{Container{
+		Rv: []Container{{
 			Iden:   1,
 			Name:   "1",
 			Placed: -1,
 			Key:    0,
 		},
-			Container{
+			{
 				Iden:   2,
 				Name:   "2",
 				Placed: -1,
 				Key:    1,
 			},
-			Container{
+			{
 				Iden:   3,
 				Name:   "3",
 				Placed: -1,
@@ -308,7 +304,8 @@ func runWails() {
 func main() {
 	var wg sync.WaitGroup
 
-	go runServer(wg)
+	go logFunc()
+	go runServer(&wg)
 	runWails()
 
 	wg.Wait()
