@@ -22,7 +22,7 @@ function DragDrop() {
   const [pos, setPos] = useState({
     x: 0,
     y: 0,
-    path: "http://localhost:5000/img",
+    path: "http://localhost:4000/img",
     cur_name: "",
   });
 

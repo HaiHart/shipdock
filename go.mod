@@ -3,9 +3,13 @@ module shipdock
 go 1.19
 
 require (
+	github.com/HaiHart/ShipdockServer v0.0.0-20230223095146-c089f580ca05
 	github.com/gorilla/mux v1.8.0
 	github.com/leaanthony/mewn v0.10.7
 	github.com/wailsapp/wails v1.16.9
+	golang.org/x/sync v0.1.0
+	google.golang.org/grpc v1.53.0
+	google.golang.org/protobuf v1.28.1
 )
 
 require (
@@ -13,6 +17,7 @@ require (
 	github.com/abadojack/whatlanggo v1.0.1 // indirect
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/go-playground/colors v1.2.0 // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/jackmordaunt/icns v1.0.0 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
@@ -28,8 +33,9 @@ require (
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/syossan27/tebata v0.0.0-20180602121909-b283fe4bc5ba // indirect
 	golang.org/x/image v0.0.0-20200430140353-33d19683fad8 // indirect
-	golang.org/x/net v0.0.0-20200625001655-4c5254603344 // indirect
-	golang.org/x/sys v0.0.0-20211025201205-69cdffdb9359 // indirect
-	golang.org/x/text v0.3.0 // indirect
+	golang.org/x/net v0.5.0 // indirect
+	golang.org/x/sys v0.4.0 // indirect
+	golang.org/x/text v0.6.0 // indirect
+	google.golang.org/genproto v0.0.0-20230110181048-76db0878b65f // indirect
 	gopkg.in/yaml.v3 v3.0.0-20190709130402-674ba3eaed22 // indirect
 )

@@ -1,19 +1,26 @@
 package main
 
 import (
+	"context"
 	_ "embed"
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
-	mx "github.com/gorilla/mux"
-	"github.com/leaanthony/mewn"
-	"github.com/wailsapp/wails"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
 	"sync"
 	"time"
+
+	pb "github.com/HaiHart/ShipdockServer/proto"
+	mx "github.com/gorilla/mux"
+	"github.com/leaanthony/mewn"
+	"github.com/wailsapp/wails"
+	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var project_name string = mewn.String("dock ship")
@@ -24,7 +31,7 @@ func action(id string) string {
 
 var Log chan string = make(chan string)
 
-func logFunc()  {
+func logFunc() {
 	f, err := os.OpenFile("access.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	defer f.Close()
 	if err != nil {
@@ -33,13 +40,14 @@ func logFunc()  {
 	}
 	for {
 		select {
-		case log:=<-Log:
+		case log := <-Log:
 			if _, err := f.Write([]byte(log)); err != nil {
 				fmt.Println(err)
 			}
 		}
 	}
 }
+
 type Position struct {
 	XPos float32 `json:"x"`
 	YPos float32 `json:"y"`
@@ -54,10 +62,67 @@ type Container struct {
 
 type Basic struct {
 	log     *wails.CustomLogger
+	runtime *wails.Runtime
 	Counter int `json:"version"`
 	Rv      []Container
 	Log     []string
 	signal  chan string
+	client  pb.ComClient
+	ctx     context.Context
+	cancle  context.CancelFunc
+}
+
+func (b *Basic) connectServer() {
+	var opts []grpc.DialOption
+	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(fmt.Sprintf("localhost:%v", 8080), opts...)
+	if err != nil {
+		fmt.Println(err)
+	}
+	b.client = pb.NewComClient(conn)
+	// defer conn.Close()
+}
+
+func (b *Basic) FetchFromServer() error {
+	ShipList, err := b.client.FetchList(b.ctx, &pb.Header{Time: timestamppb.Now()})
+	if err != nil {
+		return err
+	}
+	b.Rv = make([]Container, 0)
+	for _, v := range ShipList.List {
+		id, _ := strconv.Atoi(v.Id)
+		b.Rv = append(b.Rv, Container{
+			Name:   v.Name,
+			Iden:   id,
+			Key:    int(v.Key),
+			Placed: int(v.Place),
+		})
+	}
+	return nil
+}
+
+func (b *Basic) createServerChannel() error {
+	stream, err := b.client.MoveContainer(b.ctx)
+	if err != nil {
+		fmt.Println(err)
+	}
+	waitc := make(chan struct{})
+	go func() {
+		for {
+			in, err := stream.Recv()
+			if err == io.EOF {
+				close(waitc)
+				return
+			}
+			if err != nil {
+				fmt.Println(err)
+			}
+			
+			b.Flip(in.List[0].Id,int(in.List[0].NewPlace))
+		}
+	}()
+	
+	<-waitc
 }
 
 func (b *Basic) getRV(index int) *Container {
@@ -71,6 +136,7 @@ func (b *Basic) getRV(index int) *Container {
 func (b *Basic) WailsInit(runtime *wails.Runtime) error {
 	// runtime.Window.Fullscreen()
 	b.log = runtime.Log.New("Basic")
+	b.runtime = runtime
 	go func() {
 		for {
 			select {
@@ -205,7 +271,7 @@ func imgLoader(w http.ResponseWriter, r *http.Request) {
 	var Path = "./" + "image.jpg"
 	img, err := ioutil.ReadFile(Path)
 	if err != nil {
-		Log<-fmt.Sprintf("%v",err)
+		Log <- fmt.Sprintf("%v", err)
 		fmt.Print(err)
 	}
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -217,7 +283,7 @@ func imgUpload(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(10 << 30)
 	file, handler, err := r.FormFile("Img")
 	if err != nil {
-		Log<-fmt.Sprintf("%v",err)
+		Log <- fmt.Sprintf("%v", err)
 		fmt.Println(err)
 		return
 	}
@@ -231,7 +297,7 @@ func imgUpload(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tmpFile.Close()
 	if _, err := io.Copy(tmpFile, file); err != nil {
-		Log<-fmt.Sprintf("%v",err)
+		Log <- fmt.Sprintf("%v", err)
 		fmt.Println(err)
 		return
 	}
@@ -256,7 +322,7 @@ func runServer(wg *sync.WaitGroup) {
 	r.HandleFunc("/Conn", checkConn)
 	r.HandleFunc("/save", imgUpload)
 	http.Handle("/", r)
-	err := http.ListenAndServe(":5000", nil)
+	err := http.ListenAndServe(":4000", nil)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -265,8 +331,8 @@ func runServer(wg *sync.WaitGroup) {
 func runWails() {
 
 	app := wails.CreateApp(&wails.AppConfig{
-		Width:     1280,
-		Height:    960,
+		Width:     1100,
+		Height:    800,
 		Resizable: true,
 		Title:     "DockSetter",
 		JS:        js,
@@ -295,7 +361,18 @@ func runWails() {
 			}},
 		signal: make(chan string),
 		Log:    make([]string, 1),
+		ctx:    context.Background(),
 	}
+	go func() {
+		var group errgroup.Group
+		Bench.connectServer()
+		group.Go(Bench.FetchFromServer)
+		err := group.Wait()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}()
 	app.Bind(Bench)
 	app.Bind(action)
 	app.Run()
