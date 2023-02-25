@@ -60,16 +60,23 @@ type Container struct {
 	Key    int
 }
 
+type Command struct {
+	name  string
+	place int
+}
+
 type Basic struct {
-	log     *wails.CustomLogger
-	runtime *wails.Runtime
-	Counter int `json:"version"`
-	Rv      []Container
-	Log     []string
-	signal  chan string
-	client  pb.ComClient
-	ctx     context.Context
-	cancle  context.CancelFunc
+	log          *wails.CustomLogger
+	runtime      *wails.Runtime
+	Counter      int `json:"version"`
+	Rv           []Container
+	Log          []string
+	signal       chan string
+	client       pb.ComClient
+	ctx          context.Context
+	cancle       context.CancelFunc
+	streamConn   pb.Com_MoveContainerClient
+	storeCommand chan pb.Pack
 }
 
 func (b *Basic) connectServer() {
@@ -106,23 +113,38 @@ func (b *Basic) createServerChannel() error {
 	if err != nil {
 		fmt.Println(err)
 	}
-	waitc := make(chan struct{})
+	// waitc := make(chan struct{})
 	go func() {
+		b.streamConn = stream
 		for {
 			in, err := stream.Recv()
-			if err == io.EOF {
-				close(waitc)
-				return
-			}
+			// if err == io.EOF {
+			// 	close(waitc)
+			// 	return
+			// }
 			if err != nil {
 				fmt.Println(err)
 			}
-			
-			b.Flip(in.List[0].Id,int(in.List[0].NewPlace))
+			fmt.Println(in.List[0].Id, int(in.List[0].NewPlace))
+			b.Change(in.List[0].Id, int(in.List[0].NewPlace))
 		}
 	}()
-	
-	<-waitc
+	go func() {
+		fmt.Println("runnnnnnnnnnnnnnnnnnnnnnnnnnnnnn")
+		for {
+			select {
+			case commmand := <-b.storeCommand:
+				err := stream.Send(&commmand)
+				if err != nil {
+					fmt.Println("send command to somewhere: %v", err)
+				}
+				fmt.Println("Yesssssssssssss")
+			}
+		}
+	}()
+
+	// <-waitc
+	return nil
 }
 
 func (b *Basic) getRV(index int) *Container {
@@ -150,31 +172,73 @@ func (b *Basic) WailsInit(runtime *wails.Runtime) error {
 	return nil
 }
 
-func (b *Basic) sort() {
-	var tmp_1 []Container = make([]Container, 0)
-	var tmp_2 []Container = make([]Container, 0)
-	for _, v := range b.Rv {
-		if v.Placed > -1 {
-			tmp_1 = append(tmp_1, v)
-		} else {
-			tmp_2 = append(tmp_2, v)
-		}
-	}
-	b.Rv = append(tmp_1, tmp_2...)
-}
 
 func (b *Basic) Flip(x string, id int) *Basic {
 	fmt.Println(x)
 	if x == "yes" {
-		//  b.signal<-"initiate"
 		return b
 	}
-	var rv string = ""
 	index, err := strconv.Atoi(x)
 	if err != nil {
 		fmt.Printf("%v", err)
 		return b
 	}
+	var change, change_2 *pb.Container
+	for _, v := range b.Rv {
+		if v.Iden == index {
+			b.Counter++
+			change = &pb.Container{
+				Id:       strconv.FormatInt(int64(v.Iden),10),
+				Name:     v.Name,
+				Place:    int32(v.Placed),
+				NewPlace: int32(id),
+				Time:     timestamppb.Now(),
+			}
+			if id != -1 {
+				for i, j := range b.Rv {
+					if j.Placed == id {
+						(b.Rv)[i] = Container{
+							Iden:   j.Iden,
+							Name:   j.Name,
+							Placed: v.Placed,
+						}
+						change_2 = &pb.Container{
+							Id:       strconv.FormatInt(int64(j.Iden),10),
+							Name:     j.Name,
+							Place:    int32(j.Placed),
+							NewPlace: int32(v.Placed),
+							Time:     timestamppb.Now(),
+						}
+					}
+				}
+
+			}
+
+		}
+	}
+	var ls = pb.Pack{
+		List: []*pb.Container{
+			change,
+			change_2,
+		},
+		Swap: (change_2 != nil),
+		Err:  "None",
+	}
+	b.storeCommand <- ls
+	fmt.Println("Here!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+	return b
+}
+
+func (b *Basic) Change(x string, id int) *Basic {
+	fmt.Println("receive from server: ", x)
+
+	index, err := strconv.Atoi(x)
+	if err != nil {
+		fmt.Printf("%v", err)
+		return b
+	}
+	var rv string = ""
+
 	for k, v := range b.Rv {
 		if v.Iden == index {
 			b.Counter++
@@ -185,6 +249,7 @@ func (b *Basic) Flip(x string, id int) *Basic {
 					Placed: id,
 				}
 				rv = string(fmt.Sprintf("%d is moved to %d at %v", index, id, time.Now().Format(time.ANSIC)))
+
 			} else {
 				for i, j := range b.Rv {
 					if j.Placed == id {
@@ -194,6 +259,7 @@ func (b *Basic) Flip(x string, id int) *Basic {
 							Placed: v.Placed,
 						}
 						rv = string(fmt.Sprintf("%d is switched with %d at %v", index, j.Iden, time.Now().Format(time.ANSIC)))
+
 					}
 				}
 				(b.Rv)[k] = Container{
@@ -362,11 +428,13 @@ func runWails() {
 		signal: make(chan string),
 		Log:    make([]string, 1),
 		ctx:    context.Background(),
+		storeCommand: make(chan pb.Pack),
 	}
 	go func() {
 		var group errgroup.Group
 		Bench.connectServer()
 		group.Go(Bench.FetchFromServer)
+		group.Go(Bench.createServerChannel)
 		err := group.Wait()
 		if err != nil {
 			fmt.Println(err)

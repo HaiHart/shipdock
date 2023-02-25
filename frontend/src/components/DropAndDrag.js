@@ -60,7 +60,7 @@ function DragDrop() {
     const formData = new FormData();
     formData.append("Img", img);
     try {
-      Axios.post("http://localhost:5000/save", formData).then((res) => {
+      Axios.post("http://localhost:4000/save", formData).then((res) => {
         if (res.data) {
           console.log(res.data);
         }

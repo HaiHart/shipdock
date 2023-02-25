@@ -27,7 +27,7 @@ function DragSight({ dat, box, img, pos }) {
       backgroundImage:
         img !== null
           ? `url(${URL.createObjectURL(img)})`
-          : "url('http://localhost:5000/img')",
+          : "url('http://localhost:4000/img')",
       backgroundPosition: `${pos.x}px ${pos.y}px`,
       width: "100%",
     };
