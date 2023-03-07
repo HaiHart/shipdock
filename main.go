@@ -105,6 +105,9 @@ func (b *Basic) FetchFromServer() error {
 			Placed: int(v.Place),
 		})
 	}
+	for _,v:=range ShipList.Log{
+		b.Log=append(b.Log, v)
+	}
 	return nil
 }
 
@@ -186,7 +189,6 @@ func (b *Basic) Flip(x string, id int) *Basic {
 	var change, change_2 *pb.Container
 	for _, v := range b.Rv {
 		if v.Iden == index {
-			b.Counter++
 			change = &pb.Container{
 				Id:       strconv.FormatInt(int64(v.Iden),10),
 				Name:     v.Name,

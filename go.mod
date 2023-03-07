@@ -3,7 +3,7 @@ module shipdock
 go 1.19
 
 require (
-	github.com/HaiHart/ShipdockServer v0.0.0-20230223095146-c089f580ca05
+	github.com/HaiHart/ShipdockServer v0.0.0-20230302050145-560959b3f444
 	github.com/gorilla/mux v1.8.0
 	github.com/leaanthony/mewn v0.10.7
 	github.com/wailsapp/wails v1.16.9
